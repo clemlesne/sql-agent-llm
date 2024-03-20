@@ -11,7 +11,7 @@ from typing import Tuple
 from typing_extensions import Annotated
 import asyncio
 import pandas as pd
-import regex as re
+import re
 import sqlite3
 import streamlit as st
 
@@ -80,14 +80,16 @@ def get_agent(_business_db: sqlite3.Connection, _doc_db: FAISS) -> GroupChatMana
     llm_config = {
         "temperature": 0,
         "timeout": 120,
-        "config_list": [{
-        "api_key": getenv("AOAI_API_KEY"),
-        "api_type": "azure",
-        "api_version": "2023-12-01-preview",
-        "base_url": getenv("AOAI_BASE_URL"),
-        "model": getenv("AOAI_LLM_DEPLOYMENT"),
-        "seed": 42,
-        }],
+        "config_list": [
+            {
+                "api_key": getenv("AOAI_API_KEY"),
+                "api_type": "azure",
+                "api_version": "2023-12-01-preview",
+                "base_url": getenv("AOAI_BASE_URL"),
+                "model": getenv("AOAI_LLM_DEPLOYMENT"),
+                "seed": 42,
+            }
+        ],
     }
 
     pm = AssistantAgent(
@@ -294,31 +296,58 @@ def get_agent(_business_db: sqlite3.Connection, _doc_db: FAISS) -> GroupChatMana
 
     manager = GroupChatManager(
         groupchat=group,
-        is_termination_msg=lambda x: x.get("name", "") == qa.name and bool(re.search("query is validated", re.sub(r"\W+", " ", x.get("content", "").lower()))),
+        is_termination_msg=lambda x: x.get("name", "") == qa.name
+        and bool(
+            re.search(
+                "query is validated", re.sub(r"\W+", " ", x.get("content", "").lower())
+            )
+        ),
         llm_config=llm_config,
     )
 
     @pm.register_for_execution()
-    @developer.register_for_llm(description="Get the SQL engine information, such as the version and the software used")
+    @developer.register_for_llm(
+        description="Get the SQL engine information, such as the version and the software used"
+    )
     @st.cache_data
     def _sql_engine() -> Annotated[str, "SQL engine information"]:
         return f"SQLite v{sqlite3.sqlite_version}"
 
     @pm.register_for_execution()
-    @developer.register_for_llm(description="Get the SQL schema of the database. Use it to understand the structure of the database.")
+    @developer.register_for_llm(
+        description="Get the SQL schema of the database. Use it to understand the structure of the database."
+    )
     @st.cache_data
     def _sql_schema() -> Annotated[str, "Raw SQL schema."]:
-        return "\n".join(" ".join(sublist) for sublist in _business_db.execute("SELECT sql FROM sqlite_master WHERE type='table'").fetchall())
+        return "\n".join(
+            " ".join(sublist)
+            for sublist in _business_db.execute(
+                "SELECT sql FROM sqlite_master WHERE type='table'"
+            ).fetchall()
+        )
 
     @pm.register_for_execution()
-    @developer.register_for_llm(description="Run a SQL query on the database, only SELECT actions are allowed")
-    @qa.register_for_llm(description="Run a SQL query on the database, only SELECT actions are allowed")
+    @developer.register_for_llm(
+        description="Run a SQL query on the database, only SELECT actions are allowed"
+    )
+    @qa.register_for_llm(
+        description="Run a SQL query on the database, only SELECT actions are allowed"
+    )
     @st.cache_data
     def _sql_execute(
-        next_step: Annotated[str, "What to do after executing the query, must include action and who should do it"],
-        purpose: Annotated[str, "Purpose of executing this query, must include the reason and the expected result"],
+        next_step: Annotated[
+            str,
+            "What to do after executing the query, must include action and who should do it",
+        ],
+        purpose: Annotated[
+            str,
+            "Purpose of executing this query, must include the reason and the expected result",
+        ],
         query: Annotated[str, "SQL query"],
-    ) -> Annotated[dict[str, Any], "Dictionary with result, first 5 rows of the result are returned, but total count is included"]:
+    ) -> Annotated[
+        dict[str, Any],
+        "Dictionary with result, first 5 rows of the result are returned, but total count is included",
+    ]:
         if any(word in ["insert", "update", "delete"] for word in query.split()):
             return {
                 "error": "Only SELECT queries are allowed",
@@ -343,11 +372,18 @@ def get_agent(_business_db: sqlite3.Connection, _doc_db: FAISS) -> GroupChatMana
             }
 
     @pm.register_for_execution()
-    @developer.register_for_llm(description="Search in the SQL documentation. Use it to understand how functions and syntax work.")
-    @qa.register_for_llm(description="Search in SQL engine documentation. Use it to understand how functions and syntax work.")
+    @developer.register_for_llm(
+        description="Search in the SQL documentation. Use it to understand how functions and syntax work."
+    )
+    @qa.register_for_llm(
+        description="Search in SQL engine documentation. Use it to understand how functions and syntax work."
+    )
     @st.cache_data
     async def _sql_doc(
-        searches: Annotated[list[str], "Multiple sentences to search into the documentation database, each one should be few words, use them to expand the field of view"],
+        searches: Annotated[
+            list[str],
+            "Multiple sentences to search into the documentation database, each one should be few words, use them to expand the field of view",
+        ],
     ) -> Annotated[str, "Documentation of the function or syntax"]:
         docs = []
         for search in searches:
@@ -357,7 +393,9 @@ def get_agent(_business_db: sqlite3.Connection, _doc_db: FAISS) -> GroupChatMana
     return manager
 
 
-async def run(request: str, agent: GroupChatManager, business_db: sqlite3.Connection) -> Tuple[str, str]:
+async def run(
+    request: str, agent: GroupChatManager, business_db: sqlite3.Connection
+) -> Tuple[str, str]:
     with Cache.disk(cache_path_root=".autogen") as cache:
         res = await agent.a_initiate_chat(
             cache=cache,  # type: ignore
@@ -387,7 +425,7 @@ async def run(request: str, agent: GroupChatManager, business_db: sqlite3.Connec
                     Usage notes:
                     - xxx
                 """,
-            }
+            },
         )
 
     sql_query = res.summary.split("```sql\n")[1].split("\n```")[0]
@@ -411,7 +449,9 @@ async def main() -> None:
     agent = get_agent(business_db, doc_db)
 
     st.title("SQL agent")
-    st.caption("A SQL agent to help you with your database. It can help you to write SQL queries, understand the data, and search in easily. Technically, it is a group chat with multiple LLM agents: a product manager, a SQL developer, and a quality analyst. All are working together to help you with your SQL request.")
+    st.caption(
+        "A SQL agent to help you with your database. It can help you to write SQL queries, understand the data, and search in easily. Technically, it is a group chat with multiple LLM agents: a product manager, a SQL developer, and a quality analyst. All are working together to help you with your SQL request."
+    )
     semantic_input = st.text_input(
         label="What is your request?",
         placeholder="A sentence to describe what you want to see in the database",

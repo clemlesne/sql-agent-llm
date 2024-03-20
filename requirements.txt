@@ -1,8 +1,10 @@
-faiss-cpu==1.8.0
+faiss-cpu==1.8.0  # Hardware acceleration for FAISS
+langchain-community==0.0.28
 langchain-openai==0.0.8
-langchain==0.1.12
+langchain-text-splitters==0.0.1
 pandas==2.2.1
 pyautogen==0.2.19
 python-dotenv==1.0.1
 streamlit==1.32.2
-unstructured==0.12.6
+typing-extensions==4.9.0
+unstructured==0.12.6  # Required by langchain-community to import local files

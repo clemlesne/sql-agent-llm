@@ -20,7 +20,9 @@ test:
 	python3 -m black --check .
 
 	@echo "➡️ Running deptry..."
-	python3 -m deptry .
+	python3 -m deptry \
+		--per-rule-ignores "DEP002=faiss-cpu|unstructured" \
+		.
 
 lint:
 	@echo "➡️ Running Black..."

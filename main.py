@@ -449,9 +449,17 @@ async def main() -> None:
     agent = get_agent(business_db, doc_db)
 
     st.title("SQL agent")
-    st.caption(
-        "A SQL agent to help you with your database. It can help you to write SQL queries, understand the data, and search in easily. Technically, it is a group chat with multiple LLM agents: a product manager, a SQL developer, and a quality analyst. All are working together to help you with your SQL request."
-    )
+    st.caption("""
+        [Project is hosted on GitHub.](https://github.com/clemlesne/sql-agent-llm)
+
+        This application help you with your database. It can help you to write SQL queries, understand the data, and search in easily.
+
+        Technically, it is a group chat with multiple LLM agents. All are working together to help you with your SQL request. The agents are:
+
+        - Product manager, to scope the project
+        - Quality analyst, to review the code
+        - SQL developer, to write the code
+    """)
     semantic_input = st.text_input(
         label="What is your request?",
         placeholder="A sentence to describe what you want to see in the database",

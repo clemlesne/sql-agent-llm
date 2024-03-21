@@ -412,6 +412,7 @@ async def run(
                     # Rules
                     - Do not add any introductory phrases
                     - Usage notes are made to help the customer use the query and understand the result
+                    - Use Markdown to format the response (e.g. bullet points, code blocks, etc.)
                     - Use simple language, understandable by any non-technical person
 
                     # Customer request

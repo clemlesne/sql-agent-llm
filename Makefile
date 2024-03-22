@@ -29,4 +29,4 @@ lint:
 	python3 -m black .
 
 dev:
-	python3 -m streamlit run main.py
+	python3 -m streamlit run 🏡_Home.py

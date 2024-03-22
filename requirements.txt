@@ -6,5 +6,5 @@ pandas==2.2.1
 pyautogen==0.2.20
 python-dotenv==1.0.1
 streamlit==1.32.2
-typing-extensions==4.9.0
+typing-extensions==4.10.0
 unstructured==0.12.6  # Required by langchain-community to import local files

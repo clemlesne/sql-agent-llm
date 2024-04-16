@@ -1,5 +1,5 @@
 faiss-cpu==1.8.0  # Hardware acceleration for FAISS
-langchain-community==0.0.29
+langchain-community==0.0.33
 langchain-openai==0.1.0
 langchain-text-splitters==0.0.1
 pandas==2.2.1

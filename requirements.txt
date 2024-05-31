@@ -3,7 +3,7 @@ langchain-community==0.0.29
 langchain-openai==0.1.0
 langchain-text-splitters==0.0.1
 pandas==2.2.1
-pyautogen==0.2.20
+pyautogen==0.2.28
 python-dotenv==1.0.1
 streamlit==1.32.2
 typing-extensions==4.9.0
